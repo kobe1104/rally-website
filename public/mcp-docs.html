@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rally Connector — MCP Documentation</title>
+    <meta
+      name="description"
+      content="MCP documentation for the Rally connector demo endpoint. Endpoint, authentication, tools, and quick-check curl examples for reviewers and early integrators."
+    />
+    <link rel="icon" href="/rally-icon-512.png" type="image/png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,550&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css?v=20260926c" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <nav class="nav" aria-label="Primary">
+          <a class="logo" href="/">
+            <img src="/rally-icon-512.png" width="36" height="36" alt="Rally Logo" />
+            Rally
+          </a>
+          <ul class="nav-links">
+            <li><a href="/#how-it-works">How it works</a></li>
+            <li><a href="/#for-merchants">For merchants</a></li>
+            <li><a href="/#for-organizers">For organizers</a></li>
+            <li><a href="/#rally-muse">Rally + Muse</a></li>
+            <li><a href="/#faq">FAQ</a></li>
+            <li><a href="/support">Support</a></li>
+          </ul>
+          <div class="nav-actions">
+            <a
+              class="btn btn-primary btn-sm"
+              href="mailto:hello@echoaisms.com?subject=Rally%20early%20access"
+              >Request early access</a
+            >
+            <button
+              class="nav-toggle"
+              type="button"
+              aria-expanded="false"
+              aria-controls="mobile-nav"
+              aria-label="Open menu"
+            >
+              <span></span>
+            </button>
+          </div>
+        </nav>
+        <div class="nav-mobile" id="mobile-nav" hidden>
+          <ul>
+            <li><a href="/#how-it-works">How it works</a></li>
+            <li><a href="/#for-merchants">For merchants</a></li>
+            <li><a href="/#for-organizers">For organizers</a></li>
+            <li><a href="/#rally-muse">Rally + Muse</a></li>
+            <li><a href="/#faq">FAQ</a></li>
+            <li><a href="/support">Support</a></li>
+          </ul>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="page-hero">
+        <div class="container">
+          <h1>Rally Connector — MCP Documentation</h1>
+          <p class="meta">
+            Rally is currently in private beta. This page documents the demo connector endpoint for
+            reviewers and early integrators.
+          </p>
+        </div>
+      </section>
+
+      <div class="container">
+        <article class="legal-content docs-content">
+          <h2>Endpoint</h2>
+          <ul class="docs-kv">
+            <li><strong>URL:</strong> https://mcp.echoaisms.com/mcp</li>
+            <li><strong>Protocol:</strong> MCP Streamable HTTP</li>
+            <li><strong>Authentication:</strong> API key in the X-API-Key request header</li>
+          </ul>
+
+          <h2>Test credentials</h2>
+          <p>Reviewers can use this test key — no signup required:</p>
+          <ul class="docs-kv">
+            <li><strong>Header:</strong> X-API-Key</li>
+            <li>
+              <strong>Key:</strong>
+              <code class="inline-code">rally_test_ZvP7pH3rgQvHr0wFXpZmVfp1bNwaFgmc</code>
+            </li>
+          </ul>
+          <p>
+            Demo environment: all data is mock. No real payments, merchants, or orders are involved.
+            The interface (tool names, parameters, response shapes, authentication) matches the
+            planned production connector; only the data layer is mocked.
+          </p>
+
+          <h2>Quick check (no MCP client needed)</h2>
+          <pre class="code-block"><code># Health — no auth required
+curl https://mcp.echoaisms.com/health
+# -&gt; {"status":"ok","service":"rally-connector"}
+
+# MCP endpoint without a key -&gt; 401
+curl -s -o /dev/null -w "%{http_code}" -X POST https://mcp.echoaisms.com/mcp \
+  -H "Content-Type: application/json" -d '{}'
+# -&gt; 401</code></pre>
+
+          <h2>Tools</h2>
+
+          <h3>1. list_deals — browse merchant-published group-buy deals</h3>
+          <p>
+            Optional merchant_id filter. Merchants can only ever see their own deals' data.
+          </p>
+
+          <h3>2. create_group_buy — open a group from a published deal</h3>
+          <p>Arguments: deal_id (string), organizer_name (string).</p>
+          <p>
+            Returns a group_id and a shareable link. Unknown or unpublished deals are rejected — a
+            group can only be created from merchant-published group terms.
+          </p>
+
+          <h3>3. get_group_status — paid-participant progress toward the goal</h3>
+          <p>Arguments: group_id (string).</p>
+          <p>
+            Returns the goal, paid-participant count, remaining spots, deadline, and status (open /
+            filled). Progress reflects <strong>paid participants only</strong>.
+          </p>
+
+          <h2>Suggested end-to-end run (any MCP client)</h2>
+          <ol class="docs-steps">
+            <li>
+              Call list_deals → note deal_handcare_001 (goal: 20 paid participants).
+            </li>
+            <li>
+              Call create_group_buy with deal_id="deal_handcare_001" and organizer_name="Reviewer" →
+              note the returned group_id.
+            </li>
+            <li>
+              Call get_group_status with that group_id → paid_participants: 0, remaining: 20,
+              status: "open".
+            </li>
+            <li>
+              Call get_group_status with group_id="group_demo_002" → a pre-seeded filled group
+              (15/15).
+            </li>
+            <li>
+              Call create_group_buy with deal_id="deal_NOPE" → a clean rejection, demonstrating that
+              groups require merchant-published terms.
+            </li>
+          </ol>
+
+          <h2>Product boundaries</h2>
+          <ul>
+            <li>
+              Payments always go directly to the merchant. Rally never holds customer purchase
+              funds; this demo tracks counts only.
+            </li>
+            <li>Merchants see only their own deals' data.</li>
+            <li>
+              Status outputs describe observed counts; they make no causal claims about why a group
+              did or did not fill.
+            </li>
+          </ul>
+
+          <h2>Questions?</h2>
+          <p>
+            Contact us at
+            <a href="mailto:hello@echoaisms.com">hello@echoaisms.com</a>
+            or visit the <a href="/support">support page</a>.
+          </p>
+
+          <p class="docs-disclaimer">
+            <em
+              >Rally is an independent product of Echo AI LLC. Rally is not affiliated with,
+              endorsed by, or sponsored by Shopify or Meta.</em
+            >
+          </p>
+        </article>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-top">
+          <a class="footer-brand" href="/">
+            <img src="/rally-icon-512.png" width="32" height="32" alt="Rally Logo" />
+            Rally
+          </a>
+          <ul class="footer-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/support">Support</a></li>
+            <li><a href="/mcp-docs">MCP Docs</a></li>
+            <li><a href="/privacy">Privacy Policy</a></li>
+            <li><a href="/terms">Terms of Service</a></li>
+          </ul>
+        </div>
+        <div class="footer-meta">
+          <p>
+            Rally is an independent product of Echo AI LLC. Rally is not affiliated with, endorsed
+            by, or sponsored by Shopify or Meta.
+          </p>
+          <p>© 2026 Echo AI LLC. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="/script.js?v=20260926c"></script>
+  </body>
+</html>
