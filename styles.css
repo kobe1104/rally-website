@@ -110,7 +110,7 @@ p:last-child {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1.5rem;
+  gap: 1rem;
   min-height: 4.25rem;
 }
 
@@ -140,17 +140,21 @@ p:last-child {
 .nav-links {
   display: none;
   align-items: center;
-  gap: 1.35rem;
+  justify-content: center;
+  flex: 1;
+  gap: 0.55rem 1rem;
   list-style: none;
   margin: 0;
   padding: 0;
+  flex-wrap: wrap;
 }
 
 .nav-links a {
   text-decoration: none;
   color: var(--text-soft);
-  font-size: 0.9375rem;
+  font-size: 0.8125rem;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .nav-links a:hover {
@@ -161,6 +165,7 @@ p:last-child {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-shrink: 0;
 }
 
 .nav-toggle {
@@ -202,13 +207,27 @@ p:last-child {
   top: 5px;
 }
 
-@media (min-width: 960px) {
+@media (min-width: 900px) {
   .nav-links {
     display: flex;
   }
 
+  .nav-links a {
+    font-size: 0.875rem;
+  }
+
   .nav-toggle {
     display: none;
+  }
+}
+
+@media (min-width: 1100px) {
+  .nav-links {
+    gap: 1.35rem;
+  }
+
+  .nav-links a {
+    font-size: 0.9375rem;
   }
 }
 
@@ -376,14 +395,14 @@ p:last-child {
   animation: fade-up 0.7s 0.22s var(--ease) both;
 }
 
-.hero .btn-group {
-  animation: fade-up 0.7s 0.3s var(--ease) both;
-}
-
 .trust-line {
   margin-top: 1.5rem;
   font-size: 0.9375rem;
   color: rgba(200, 208, 220, 0.85);
+  animation: fade-up 0.7s 0.3s var(--ease) both;
+}
+
+.hero .btn-group {
   animation: fade-up 0.7s 0.38s var(--ease) both;
 }
 
@@ -841,8 +860,8 @@ p:last-child {
   .eyebrow,
   .hero h1,
   .hero-lead,
-  .hero .btn-group,
   .trust-line,
+  .hero .btn-group,
   .reveal {
     animation: none;
     opacity: 1;
