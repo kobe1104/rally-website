@@ -1,0 +1,932 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <link rel="icon" href="data:," />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <title>Rally Pitch Demo</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --ink: #111b2e;
+      --muted: #5d6678;
+      --paper: #f6f8fb;
+      --surface: #ffffff;
+      --surface-2: #eef2f6;
+      --navy: #102039;
+      --navy-2: #182a49;
+      --coral: #f24f4a;
+      --coral-hover: #dc3f3b;
+      --mint: #1b9a74;
+      --mint-soft: #dff6ed;
+      --amber: #b66d13;
+      --line: #d9dfe7;
+      --line-dark: #2d405f;
+      --shadow: 0 18px 55px rgba(14, 31, 56, .12);
+      --soft-shadow: 0 8px 24px rgba(14, 31, 56, .08);
+      --radius: 18px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ink: #edf3fb;
+        --muted: #aebbd0;
+        --paper: #0a1220;
+        --surface: #111c2e;
+        --surface-2: #18263b;
+        --navy: #080f1b;
+        --navy-2: #12213a;
+        --coral: #ff6761;
+        --coral-hover: #ff7a75;
+        --mint: #54d5aa;
+        --mint-soft: #103a31;
+        --amber: #f2b764;
+        --line: #2a3b54;
+        --line-dark: #38506f;
+        --shadow: 0 18px 55px rgba(0, 0, 0, .32);
+        --soft-shadow: 0 8px 24px rgba(0, 0, 0, .22);
+      }
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "DM Sans", "Noto Sans TC", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .num { font-family: "DM Sans", sans-serif; font-variant-numeric: tabular-nums; }
+    .demo-strip {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      min-height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 10px 18px;
+      background: #ffd64a;
+      color: #281f00;
+      border-bottom: 1px solid rgba(40,31,0,.16);
+      font-weight: 800;
+      font-size: 14px;
+      letter-spacing: .02em;
+      text-align: center;
+    }
+    .demo-strip .dot { width: 8px; height: 8px; background: #dd3b36; border-radius: 50%; box-shadow: 0 0 0 4px rgba(221,59,54,.14); }
+    .flowbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 46px;
+      z-index: 40;
+    }
+    .flowbar-inner {
+      width: min(1160px, calc(100% - 32px));
+      margin: auto;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 24px;
+      min-height: 66px;
+    }
+    .flow-note { color: var(--muted); font-size: 13px; white-space: nowrap; }
+    .stage-nav { display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .stage-btn {
+      appearance: none;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--muted);
+      padding: 10px 12px;
+      font-weight: 700;
+      font-size: 14px;
+      transition: background .2s, color .2s;
+    }
+    .stage-btn:hover { background: var(--surface-2); color: var(--ink); }
+    .stage-btn[aria-current="step"] { background: var(--navy); color: white; }
+    .language-toggle {
+      justify-self: end;
+      display: inline-flex;
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface-2);
+    }
+    .lang-btn {
+      appearance: none;
+      border: 0;
+      border-radius: 7px;
+      padding: 7px 10px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 12px;
+    }
+    .lang-btn.active { background: var(--surface); color: var(--ink); box-shadow: 0 1px 4px rgba(14,31,56,.12); }
+    .screen { display: none; }
+    .screen.active { display: block; }
+    .join-screen { background: var(--surface); }
+    .hero {
+      background: var(--navy);
+      color: #fff;
+      padding: clamp(42px, 7vw, 84px) 0 54px;
+      overflow: hidden;
+      position: relative;
+    }
+    .hero:after {
+      content: "";
+      position: absolute;
+      right: -10%;
+      top: -18%;
+      width: 44vw;
+      height: 44vw;
+      max-width: 620px;
+      max-height: 620px;
+      min-width: 360px;
+      min-height: 360px;
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 50%;
+      box-shadow: 0 0 0 76px rgba(255,255,255,.028), 0 0 0 152px rgba(255,255,255,.018);
+      pointer-events: none;
+    }
+    .hero-inner, .content-wrap { width: min(1160px, calc(100% - 40px)); margin: auto; }
+    .hero-inner { display: grid; grid-template-columns: minmax(0, 1.02fr) minmax(360px, .98fr); gap: 64px; align-items: center; position: relative; z-index: 1; }
+    .merchant-line { display: flex; align-items: center; gap: 10px; color: #b8c5da; font-size: 14px; margin-bottom: 22px; }
+    .merchant-avatar { width: 30px; height: 30px; border-radius: 9px; background: #f2d4d3; color: #552a2a; display: grid; place-items: center; font-weight: 900; }
+    .hero h1 { margin: 0 0 16px; font-size: clamp(35px, 4.7vw, 62px); line-height: 1.08; letter-spacing: -.04em; max-width: 760px; }
+    .hero-copy { color: #c8d2e1; font-size: clamp(16px, 2vw, 19px); line-height: 1.75; max-width: 650px; margin: 0 0 30px; }
+    .price-row { display: flex; align-items: baseline; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+    .sale-price { font-size: 44px; font-weight: 800; letter-spacing: -.03em; }
+    .regular-price { color: #91a0b8; text-decoration: line-through; font-size: 18px; }
+    .save-tag { color: #ffd9d6; background: rgba(242,79,74,.18); padding: 5px 9px; border-radius: 7px; font-size: 13px; font-weight: 700; }
+    .variant-label { color: #b8c5da; font-size: 13px; margin-bottom: 10px; }
+    .variants { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 28px; }
+    .variant {
+      border: 1px solid rgba(255,255,255,.22);
+      color: #fff;
+      background: rgba(255,255,255,.05);
+      border-radius: 10px;
+      padding: 9px 13px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .variant.active { border-color: #fff; background: #fff; color: #102039; }
+    .primary, .secondary, .text-btn {
+      border: 0;
+      border-radius: 12px;
+      font-weight: 800;
+      transition: background .2s, transform .15s;
+    }
+    .primary { background: var(--coral); color: #fff; padding: 14px 21px; box-shadow: 0 8px 20px rgba(242,79,74,.24); }
+    .primary:hover { background: var(--coral-hover); }
+    .primary:active, .secondary:active { transform: translateY(1px); }
+    .secondary { background: var(--surface-2); color: var(--ink); padding: 13px 18px; }
+    .text-btn { background: transparent; color: inherit; padding: 8px 10px; }
+    .product-visual {
+      min-height: 430px;
+      position: relative;
+      display: grid;
+      place-items: center;
+      --stage-a: #e9c8c3;
+      --stage-b: #dcaea7;
+      --shadow-color: rgba(90,43,45,.18);
+      --bottle-a: rgba(255,255,255,.88);
+      --bottle-b: rgba(250,232,229,.96);
+      --bottle-c: rgba(228,190,185,.95);
+      --bottle-ink: #63383c;
+      --cap-color: #a85b5f;
+      --neck-color: #edd2cf;
+    }
+    .product-visual[data-formula="calm"] {
+      --stage-a: #c8dde4;
+      --stage-b: #a9cbd4;
+      --shadow-color: rgba(35,78,91,.18);
+      --bottle-a: rgba(255,255,255,.9);
+      --bottle-b: rgba(221,241,244,.96);
+      --bottle-c: rgba(160,205,216,.96);
+      --bottle-ink: #244f5a;
+      --cap-color: #5c8993;
+      --neck-color: #d5ebef;
+    }
+    .product-visual[data-formula="barrier"] {
+      --stage-a: #d5d8bb;
+      --stage-b: #b7bc91;
+      --shadow-color: rgba(76,69,35,.2);
+      --bottle-a: rgba(255,251,226,.94);
+      --bottle-b: rgba(233,217,153,.96);
+      --bottle-c: rgba(180,155,75,.96);
+      --bottle-ink: #554a24;
+      --cap-color: #6f6745;
+      --neck-color: #e5dcaa;
+    }
+    .beauty-stage {
+      width: min(100%, 480px);
+      aspect-ratio: 1.1;
+      background: var(--stage-a);
+      border-radius: 34px 34px 90px 34px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 28px 70px rgba(0,0,0,.26);
+      transition: background .28s ease, border-radius .28s ease;
+    }
+    .beauty-stage:before { content: ""; position: absolute; inset: auto -20% -42% -20%; height: 72%; background: var(--stage-b); border-radius: 50%; transition: background .28s ease, transform .28s ease; }
+    .beauty-stage:after { content: ""; position: absolute; left: 42px; top: 38px; width: 42px; height: 42px; border-radius: 50%; background: rgba(255,255,255,.34); box-shadow: 298px 54px 0 4px rgba(255,255,255,.22); }
+    .product-visual[data-formula="calm"] .beauty-stage { border-radius: 90px 34px 34px 34px; }
+    .product-visual[data-formula="calm"] .beauty-stage:before { transform: translateY(-14px) rotate(-5deg); }
+    .product-visual[data-formula="barrier"] .beauty-stage { border-radius: 34px 90px 34px 34px; }
+    .product-visual[data-formula="barrier"] .beauty-stage:before { transform: translateY(12px) scaleX(.86); }
+    .bottle-shadow { position: absolute; z-index: 1; left: 50%; bottom: 46px; width: 230px; height: 38px; transform: translateX(-50%); border-radius: 50%; background: var(--shadow-color); filter: blur(7px); transition: background .28s ease, width .28s ease; }
+    .bottle {
+      position: absolute;
+      z-index: 2;
+      left: 50%;
+      top: 53%;
+      width: 178px;
+      height: 270px;
+      transform: translate(-50%, -50%);
+      border-radius: 30px 30px 34px 34px;
+      background: linear-gradient(110deg, var(--bottle-a) 0%, var(--bottle-b) 42%, var(--bottle-c) 100%);
+      border: 1px solid rgba(255,255,255,.72);
+      box-shadow: inset 15px 0 22px rgba(255,255,255,.48), inset -13px -6px 18px rgba(50,56,58,.1), 0 26px 36px var(--shadow-color);
+      transition: width .28s ease, height .28s ease, border-radius .28s ease, background .28s ease;
+    }
+    .bottle:before { content: ""; position: absolute; left: 18px; top: 28px; bottom: 26px; width: 13px; border-radius: 10px; background: rgba(255,255,255,.48); }
+    .cap { position: absolute; z-index: 3; left: 50%; top: calc(53% - 166px); width: 104px; height: 46px; transform: translateX(-50%); border-radius: 13px 13px 8px 8px; background: var(--cap-color); box-shadow: inset 0 8px 0 rgba(255,255,255,.12), 0 7px 14px var(--shadow-color); transition: width .28s ease, height .28s ease, top .28s ease, border-radius .28s ease, background .28s ease; }
+    .neck { position: absolute; z-index: 2; left: 50%; top: calc(53% - 136px); width: 76px; height: 38px; transform: translateX(-50%); background: var(--neck-color); border-radius: 8px; transition: width .28s ease, top .28s ease, background .28s ease; }
+    .product-visual[data-formula="calm"] .bottle { width: 164px; height: 254px; border-radius: 74px 74px 26px 26px; }
+    .product-visual[data-formula="calm"] .cap { width: 84px; height: 42px; top: calc(53% - 157px); border-radius: 22px 22px 8px 8px; }
+    .product-visual[data-formula="calm"] .neck { width: 62px; top: calc(53% - 128px); }
+    .product-visual[data-formula="barrier"] .bottle { width: 202px; height: 226px; top: 57%; border-radius: 24px 24px 48px 48px; }
+    .product-visual[data-formula="barrier"] .cap { width: 126px; height: 34px; top: calc(57% - 144px); border-radius: 8px 8px 4px 4px; }
+    .product-visual[data-formula="barrier"] .neck { width: 92px; top: calc(57% - 120px); }
+    .bottle-label { position: absolute; inset: 88px 24px auto; text-align: center; color: var(--bottle-ink); border-top: 1px solid currentColor; border-bottom: 1px solid currentColor; padding: 18px 5px 16px; transition: color .28s ease; }
+    .bottle-label strong { display: block; font-size: 20px; letter-spacing: .12em; }
+    .bottle-label span { display: block; margin-top: 8px; font-size: 10px; letter-spacing: .16em; }
+    .floating-card {
+      position: absolute;
+      z-index: 3;
+      background: rgba(255,255,255,.94);
+      color: #111b2e;
+      border-radius: 14px;
+      padding: 13px 16px;
+      box-shadow: var(--soft-shadow);
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .floating-card.one { right: 0; top: 10%; }
+    .floating-card.two { left: -8px; bottom: 11%; }
+    .floating-card .green { color: #087656; }
+    .group-panel {
+      width: min(1160px, calc(100% - 40px));
+      margin: -24px auto 0;
+      position: relative;
+      z-index: 4;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      padding: clamp(22px, 4vw, 36px);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 290px;
+      gap: 44px;
+      align-items: center;
+    }
+    .status-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 14px; }
+    .status-title { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 800; }
+    .pulse { width: 10px; height: 10px; border-radius: 50%; background: var(--coral); box-shadow: 0 0 0 5px rgba(242,79,74,.12); }
+    .pulse.done { background: var(--mint); box-shadow: 0 0 0 5px rgba(27,154,116,.14); }
+    .count { font-size: 30px; font-weight: 800; letter-spacing: -.03em; }
+    .count small { font-family: "DM Sans", "Noto Sans TC", sans-serif; font-size: 13px; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+    .track { height: 14px; width: 100%; background: var(--surface-2); border-radius: 999px; overflow: hidden; position: relative; }
+    .fill { height: 100%; width: 0; background: var(--coral); border-radius: inherit; transition: width .55s cubic-bezier(.22,.8,.22,1), background .3s; }
+    .fill.done { background: var(--mint); }
+    .threshold { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink); opacity: .5; left: 62.5%; }
+    .progress-meta { display: flex; justify-content: space-between; margin-top: 10px; font-size: 13px; color: var(--muted); gap: 12px; }
+    .live-copy { margin-top: 16px; min-height: 24px; font-size: 14px; color: var(--muted); }
+    .live-copy strong { color: var(--ink); }
+    .progress-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .progress-controls .secondary { border: 1px solid var(--line); }
+    .completion-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+    .completion-actions[hidden] { display: none; }
+    .completion-note { color: var(--muted); font-size: 12px; }
+    .time-box { background: var(--navy); color: white; padding: 22px; border-radius: 16px; }
+    .time-box .label { color: #aebbd0; font-size: 12px; margin-bottom: 7px; }
+    .time-box .time { font-size: 28px; font-weight: 800; letter-spacing: .02em; }
+    .time-box .speed { display: inline-block; margin-top: 10px; color: #ffd5d2; font-size: 12px; }
+    .terms {
+      width: min(1160px, calc(100% - 40px));
+      margin: 46px auto 0;
+      padding-bottom: 70px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--line);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+    .term { background: var(--surface); padding: 24px; }
+    .term-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--mint-soft); display: grid; place-items: center; margin-bottom: 17px; color: var(--mint); }
+    .term svg { width: 19px; height: 19px; }
+    .term h3 { font-size: 15px; margin: 0 0 8px; }
+    .term p { color: var(--muted); line-height: 1.7; font-size: 14px; margin: 0; }
+    .disclosure { grid-column: 1 / -1; background: var(--surface); padding: 18px 24px; font-size: 14px; line-height: 1.65; color: var(--muted); display: flex; gap: 10px; align-items: flex-start; border-top: 1px solid var(--line); }
+    .disclosure strong { color: var(--ink); white-space: nowrap; }
+    .results-head { background: var(--navy); color: white; padding: 58px 0 76px; }
+    .results-head .inner, .dashboard { width: min(1160px, calc(100% - 40px)); margin: auto; }
+    .success-mark { width: 46px; height: 46px; border-radius: 50%; background: var(--mint); display: grid; place-items: center; margin-bottom: 20px; }
+    .success-mark svg { width: 24px; height: 24px; }
+    .results-head h2 { margin: 0 0 10px; font-size: clamp(34px, 5vw, 56px); letter-spacing: -.035em; }
+    .results-head p { margin: 0; color: #bfcbde; font-size: 17px; }
+    .dashboard { margin-top: -34px; padding-bottom: 76px; }
+    .hero-metrics {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+    .metric {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      box-shadow: var(--soft-shadow);
+      padding: 24px;
+      border-radius: 16px;
+    }
+    .metric.emphasis { background: var(--coral); color: white; border-color: transparent; }
+    .metric .label { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+    .metric.emphasis .label { color: #ffe5e3; }
+    .metric .value { font-size: clamp(31px, 4vw, 44px); line-height: 1; font-weight: 800; letter-spacing: -.035em; }
+    .metric .note { margin-top: 10px; color: var(--muted); font-size: 12px; }
+    .metric.emphasis .note { color: #ffe5e3; }
+    .section-title { margin: 38px 0 16px; font-size: 22px; letter-spacing: -.02em; }
+    .split-grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: 18px; }
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 24px; }
+    .money-row { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 10px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+    .money-row:last-of-type { border-bottom: 0; }
+    .money-row .who { font-weight: 800; }
+    .money-row .calc { color: var(--muted); font-size: 12px; margin-top: 4px; }
+    .money-row .amount { font-size: 24px; font-weight: 800; }
+    .money-row.total { margin-top: 6px; padding: 18px 16px; border-radius: 12px; background: var(--mint-soft); border: 0; }
+    .cost-compare { display: grid; gap: 12px; }
+    .cost-card { padding: 18px; background: var(--surface-2); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .cost-card .value { font-size: 30px; font-weight: 800; color: var(--mint); }
+    .fineprint { color: var(--muted); font-size: 12px; line-height: 1.6; margin: 14px 0 0; }
+    .insight-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 14px; }
+    .insight-list li { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--line); padding-bottom: 14px; }
+    .insight-list li:last-child { border: 0; padding-bottom: 0; }
+    .insight-list span { color: var(--muted); font-size: 13px; }
+    .insight-list strong { text-align: right; }
+    .next-row { margin-top: 22px; display: flex; justify-content: space-between; align-items: center; gap: 18px; background: var(--navy); color: white; padding: 22px 24px; border-radius: 14px; }
+    .next-row p { margin: 4px 0 0; color: #b9c5d8; font-size: 13px; }
+    .customers { width: min(1160px, calc(100% - 40px)); margin: auto; padding: 54px 0 80px; }
+    .customers-head { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
+    .customers h2 { font-size: clamp(30px, 4vw, 44px); margin: 0 0 7px; letter-spacing: -.03em; }
+    .customers-head p { margin: 0; color: var(--muted); }
+    .customer-summary { display: flex; gap: 12px; }
+    .summary-chip { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 11px 14px; white-space: nowrap; font-size: 13px; }
+    .summary-chip strong { display: block; font-size: 19px; }
+    .table-tools { display: flex; gap: 10px; margin-bottom: 14px; }
+    .search { flex: 1; position: relative; }
+    .search input, .table-tools select {
+      width: 100%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 11px; padding: 12px 14px; outline: 0;
+    }
+    .table-tools select { width: auto; min-width: 190px; }
+    .search input:focus, .table-tools select:focus { border-color: var(--coral); box-shadow: 0 0 0 3px rgba(242,79,74,.12); }
+    .table-shell { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+    table { border-collapse: collapse; width: 100%; font-size: 13px; }
+    th { text-align: left; color: var(--muted); font-weight: 700; background: var(--surface-2); padding: 13px 15px; }
+    td { padding: 14px 15px; border-top: 1px solid var(--line); vertical-align: middle; }
+    td strong { display: block; }
+    td small { color: var(--muted); }
+    .status-pill { display: inline-flex; align-items: center; gap: 6px; color: var(--mint); font-weight: 800; }
+    .status-pill:before { content:""; width: 7px; height: 7px; background: currentColor; border-radius: 50%; }
+    .table-foot { display: flex; justify-content: space-between; gap: 16px; align-items: center; padding: 15px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+    .empty { display:none; padding: 42px; text-align:center; color:var(--muted); }
+    .journey-note { margin-top: 20px; border: 1px dashed var(--line); border-radius: 14px; padding: 16px 18px; color: var(--muted); font-size: 13px; }
+    .toast { position: fixed; left: 50%; bottom: 22px; transform: translate(-50%, 20px); background: var(--ink); color: var(--paper); padding: 12px 16px; border-radius: 12px; box-shadow: var(--shadow); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 100; font-size: 13px; white-space: nowrap; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    @media (max-width: 850px) {
+      .flowbar-inner { min-height: auto; padding: 10px 0; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; }
+      .flow-note { display: none; }
+      .stage-nav { min-width: 0; justify-content: start; }
+      .stage-btn { padding: 9px 8px; font-size: 12px; }
+      .hero-inner { grid-template-columns: 1fr; gap: 32px; }
+      .product-visual { min-height: 340px; }
+      .beauty-stage { max-width: 420px; }
+      .group-panel { grid-template-columns: 1fr; gap: 20px; }
+      .terms { grid-template-columns: 1fr; }
+      .disclosure { grid-column: auto; }
+      .hero-metrics { grid-template-columns: 1fr 1fr; }
+      .metric.emphasis { grid-column: 1 / -1; }
+      .split-grid { grid-template-columns: 1fr; }
+      .customers-head { align-items: flex-start; flex-direction: column; }
+      .table-shell { border: 0; background: transparent; overflow: visible; }
+      table, tbody, tr, td { display: block; width: 100%; }
+      thead { display: none; }
+      tr { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 10px; }
+      td { border: 0; padding: 5px 0; display: grid; grid-template-columns: 92px 1fr; gap: 12px; }
+      td:before { content: attr(data-label); color: var(--muted); font-size: 12px; }
+      .table-foot { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+    }
+    @media (max-width: 560px) {
+      .demo-strip { font-size: 12px; min-height: 42px; }
+      .flowbar { top: 42px; }
+      .flowbar-inner { width: calc(100% - 20px); }
+      .stage-nav { gap: 2px; }
+      .stage-btn { padding: 8px 5px; font-size: 11px; }
+      .lang-btn { padding: 6px 7px; font-size: 11px; }
+      .hero-inner, .content-wrap, .group-panel, .terms, .results-head .inner, .dashboard, .customers { width: min(100% - 28px, 1160px); }
+      .hero { padding-top: 36px; }
+      .hero h1 { font-size: 38px; }
+      .hero-copy { font-size: 15px; }
+      .sale-price { font-size: 38px; }
+      .product-visual { min-height: 290px; }
+      .beauty-stage { border-radius: 26px 26px 62px 26px; }
+      .bottle { width: 138px; height: 214px; }
+      .bottle-label { inset: 70px 18px auto; padding: 13px 3px 12px; }
+      .bottle-label strong { font-size: 16px; }
+      .bottle-label span { font-size: 8px; }
+      .cap { width: 82px; height: 38px; top: calc(53% - 132px); }
+      .neck { width: 60px; height: 31px; top: calc(53% - 108px); }
+      .bottle-shadow { bottom: 31px; width: 185px; }
+      .floating-card.one { top: 4%; right: 4px; }
+      .floating-card.two { left: 4px; bottom: 6%; }
+      .group-panel { margin-top: -18px; padding: 20px; }
+      .status-row { align-items: flex-start; }
+      .count { font-size: 25px; }
+      .terms { margin-top: 28px; }
+      .hero-metrics { grid-template-columns: 1fr; }
+      .metric.emphasis { grid-column: auto; }
+      .results-head { padding: 42px 0 62px; }
+      .panel { padding: 19px; }
+      .next-row { align-items: flex-start; flex-direction: column; }
+      .next-row .primary { width: 100%; }
+      .customer-summary { width: 100%; }
+      .summary-chip { flex: 1; }
+      .table-tools { flex-direction: column; }
+      .table-tools select { width: 100%; }
+      .toast { max-width: calc(100% - 24px); white-space: normal; text-align: center; }
+    }
+    @media (max-width: 410px) {
+      .stage-btn { padding: 8px 4px; font-size: 10px; }
+      .lang-btn { padding: 6px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *:before, *:after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-strip"><span class="dot" aria-hidden="true"></span><span data-en="Simulated data · No real transactions" data-zh="模拟数据・非真实交易">Simulated data · No real transactions</span></div>
+  <nav class="flowbar" aria-label="Demo flow" data-aria-en="Demo flow" data-aria-zh="Demo 流程">
+    <div class="flowbar-inner">
+      <div class="flow-note" data-en="Merchant pitch flow preview" data-zh="商家提案流程预览">Merchant pitch flow preview</div>
+      <div class="stage-nav">
+        <button class="stage-btn" data-screen="join" aria-current="step" data-en="1 Join" data-zh="1 参团页">1 Join</button>
+        <button class="stage-btn" data-screen="results" data-en="2 Results" data-zh="2 成团成果">2 Results</button>
+        <button class="stage-btn" data-screen="customers" data-en="3 Customers" data-zh="3 客户名单">3 Customers</button>
+      </div>
+      <div class="language-toggle" role="group" aria-label="Language" data-aria-en="Language" data-aria-zh="语言">
+        <button class="lang-btn active" id="lang-en" type="button" aria-pressed="true">EN</button>
+        <button class="lang-btn" id="lang-zh" type="button" aria-pressed="false">简中</button>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <section id="screen-join" class="screen join-screen active" aria-labelledby="join-title">
+      <div class="hero">
+        <div class="hero-inner">
+          <div>
+            <div class="merchant-line"><span class="merchant-avatar">A</span><span data-en="Aurelia Botanics official group buy · Beauty creator Maya Chen's pick" data-zh="Aurelia Botanics 官方团购 · 美妆创作者 Maya Chen 推荐">Aurelia Botanics official group buy · Beauty creator Maya Chen's pick</span></div>
+            <h1 id="join-title" data-en="Rose Rejuvenating Essence Toner" data-zh="玫瑰焕颜精华水">Rose Rejuvenating Essence Toner</h1>
+            <p class="hero-copy" data-en="A cushiony essence toner that hydrates, softens, and preps skin in one step. The group is guaranteed at 100 orders—and stays open until the 24-hour deadline." data-zh="一瓶完成补水、柔肤与后续保养打底。100 人达标才会扣款；达标后仍可持续加入，直到 24 小时截止。">A cushiony essence toner that hydrates, softens, and preps skin in one step. The group is guaranteed at 100 orders—and stays open until the 24-hour deadline.</p>
+            <div class="price-row">
+              <span class="sale-price num">$75</span>
+              <span class="regular-price num">$84</span>
+              <span class="save-tag" data-en="Save $9 each" data-zh="每瓶省 $9">Save $9 each</span>
+            </div>
+            <div class="variant-label" data-en="Choose your formula" data-zh="选择配方">Choose your formula</div>
+            <div class="variants" role="group" aria-label="Product formula" data-aria-en="Product formula" data-aria-zh="商品配方">
+              <button class="variant active" data-variant="rose" aria-pressed="true" data-en="Rose Glow" data-zh="玫瑰焕采">Rose Glow</button>
+              <button class="variant" data-variant="calm" aria-pressed="false" data-en="Calm &amp; Dew" data-zh="舒缓水润">Calm &amp; Dew</button>
+              <button class="variant" data-variant="barrier" aria-pressed="false" data-en="Barrier Reset" data-zh="屏障修护">Barrier Reset</button>
+            </div>
+          </div>
+          <div class="product-visual" id="product-visual" data-formula="rose" role="img" aria-label="Illustration of Aurelia Botanics Rose Glow formula" data-aria-en="Illustration of Aurelia Botanics Rose Glow formula" data-aria-zh="Aurelia Botanics 玫瑰焕采配方示意图">
+            <div class="beauty-stage">
+              <div class="bottle-shadow"></div>
+              <div class="neck"></div>
+              <div class="cap"></div>
+              <div class="bottle"><div class="bottle-label"><strong>AURELIA</strong><span id="bottle-formula">ROSE GLOW</span></div></div>
+            </div>
+            <div class="floating-card one"><span class="green" id="formula-benefit">Rose hydration</span></div>
+            <div class="floating-card two" id="formula-detail">Alcohol-free · pH-balanced</div>
+          </div>
+        </div>
+      </div>
+
+      <section class="group-panel" aria-label="Group progress" data-aria-en="Group progress" data-aria-zh="成团进度">
+        <div>
+          <div class="status-row">
+            <div class="status-title"><span class="pulse" id="pulse"></span><span id="status-text">Building the group</span></div>
+            <div class="count"><span id="sold-count" class="num">64</span> <small id="authorized-label">pre-authorized</small></div>
+          </div>
+          <div class="track" aria-label="Group progress" data-aria-en="Group progress" data-aria-zh="成团进度"><div class="fill" id="progress-fill"></div><span class="threshold" aria-hidden="true"></span></div>
+          <div class="progress-meta"><span id="progress-copy">36 more to guarantee the group</span><span id="threshold-copy">Threshold 100 · Cap 160</span></div>
+          <div class="live-copy" id="live-copy" aria-live="polite"><strong>Jia W.</strong> just chose Rose Glow</div>
+          <div class="progress-controls" role="group" aria-label="Simulation controls" data-aria-en="Simulation controls" data-aria-zh="模拟操作">
+            <button class="primary" id="join-demo" data-en="Simulate joining" data-zh="模拟加入团购">Simulate joining</button>
+            <button class="secondary" id="toggle-play" data-en="Pause auto progress" data-zh="暂停自动进度">Pause auto progress</button>
+          </div>
+          <div class="completion-actions" id="completion-actions" hidden>
+            <button class="primary" id="view-results" type="button" data-en="View results" data-zh="查看结果">View results</button>
+            <span class="completion-note" id="replay-status"></span>
+          </div>
+        </div>
+        <div class="time-box">
+          <div class="label" data-en="Simulated countdown" data-zh="模拟截止倒数">Simulated countdown</div>
+          <div class="time num" id="time-left">24:00:00</div>
+          <span class="speed" data-en="Time accelerated 24×" data-zh="时间已加速 24×">Time accelerated 24×</span>
+        </div>
+      </section>
+
+      <section class="terms" aria-label="Group terms" data-aria-en="Group terms" data-aria-zh="参团条款">
+        <article class="term">
+          <div class="term-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/></svg></div>
+          <h3 data-en="Authorize now, charge at deadline" data-zh="先预授权，截止才扣款">Authorize now, charge at deadline</h3>
+          <p data-en="Joining only holds $75 on your card. Payment is captured at the deadline only if the group reaches 100; otherwise the hold is released automatically." data-zh="加入时只保留 $75 额度。截止时达到 100 人才请款；未达标则自动释放。">Joining only holds $75 on your card. Payment is captured at the deadline only if the group reaches 100; otherwise the hold is released automatically.</p>
+        </article>
+        <article class="term">
+          <div class="term-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10v10H7z"/><path d="M5 12H3m18 0h-2M12 5V3m0 18v-2"/></svg></div>
+          <h3 data-en="No withdrawal after joining" data-zh="加入后不能中途退出">No withdrawal after joining</h3>
+          <p data-en="Your order is committed for 24 hours. After a successful group is charged, returns follow the merchant's published return policy." data-zh="24 小时内名额会被锁定。成团扣款后如需退货，由商家依公开退货政策处理。">Your order is committed for 24 hours. After a successful group is charged, returns follow the merchant's published return policy.</p>
+        </article>
+        <article class="term">
+          <div class="term-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 4v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V7l7-4z"/><path d="M9 12l2 2 4-4"/></svg></div>
+          <h3 data-en="The merchant handles fulfillment" data-zh="商家负责出货与售后">The merchant handles fulfillment</h3>
+          <p data-en="Aurelia Botanics receives completed orders and shipping details, then handles delivery, returns, and product support." data-zh="Aurelia Botanics 将收到成团订单与配送资料，并负责出货、退换货与商品客服。">Aurelia Botanics receives completed orders and shipping details, then handles delivery, returns, and product support.</p>
+        </article>
+        <div class="disclosure"><strong data-en="Paid partnership" data-zh="合作披露">Paid partnership</strong><span data-en="Maya Chen earns a commission from completed sales in this group. This relationship does not change her personal review of the product." data-zh="Maya Chen 会从本团成交中获得佣金。这项合作关系不影响其开箱内容与个人评价。">Maya Chen earns a commission from completed sales in this group. This relationship does not change her personal review of the product.</span></div>
+      </section>
+    </section>
+
+    <section id="screen-results" class="screen" aria-labelledby="results-title">
+      <header class="results-head">
+        <div class="inner">
+          <div class="success-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M5 12.5l4 4L19 7"/></svg></div>
+          <h2 id="results-title" data-en="Group complete: 136 units sold." data-zh="截止成团，共售出 136 份。">Group complete: 136 units sold.</h2>
+          <p data-en="Threshold 100 · 36 units above goal · All pre-authorized orders captured" data-zh="门槛 100 份 · 超标 36 份 · 所有已预授权订单已转为付款">Threshold 100 · 36 units above goal · All pre-authorized orders captured</p>
+        </div>
+      </header>
+      <div class="dashboard">
+        <div class="hero-metrics">
+          <article class="metric emphasis"><div class="label" data-en="Gross group sales" data-zh="团购总销售额">Gross group sales</div><div class="value num">$10,200</div><div class="note" data-en="136 units × $75" data-zh="136 份 × $75">136 units × $75</div></article>
+          <article class="metric"><div class="label" data-en="Merchant proceeds" data-zh="商家可用货款">Merchant proceeds</div><div class="value num">$8,670</div><div class="note" data-en="After creator and platform fees; before processing, COGS, and fulfillment" data-zh="扣除创作者与平台费；未扣金流费、商品成本与履约成本">After creator and platform fees; before processing, COGS, and fulfillment</div></article>
+          <article class="metric"><div class="label" data-en="Total customer savings" data-zh="消费者共省下">Total customer savings</div><div class="value num">$1,224</div><div class="note" data-en="$9 saved on every unit" data-zh="每人比原价少付 $9">$9 saved on every unit</div></article>
+        </div>
+
+        <h3 class="section-title" data-en="Where every dollar goes" data-zh="每一美元去了哪里">Where every dollar goes</h3>
+        <div class="split-grid">
+          <section class="panel" aria-label="Three-way split" data-aria-en="Three-way split" data-aria-zh="三方分账">
+            <div class="money-row"><div><div class="who" data-en="Beauty creator Maya Chen" data-zh="美妆创作者 Maya Chen">Beauty creator Maya Chen</div><div class="calc" data-en="Gross sales × 10%" data-zh="成交额 × 10%">Gross sales × 10%</div></div><div class="amount num">$1,020</div></div>
+            <div class="money-row"><div><div class="who" data-en="Rally platform fee" data-zh="Rally 平台费">Rally platform fee</div><div class="calc" data-en="Gross sales × 5%" data-zh="成交额 × 5%">Gross sales × 5%</div></div><div class="amount num">$510</div></div>
+            <div class="money-row total"><div><div class="who">Aurelia Botanics</div><div class="calc" data-en="Gross sales × 85%" data-zh="成交额 × 85%">Gross sales × 85%</div></div><div class="amount num">$8,670</div></div>
+            <p class="fineprint" data-en="This shows the distribution of group-buy revenue, not accounting profit. The merchant still accounts for product cost, Stripe processing fees, and fulfillment." data-zh="此处展示团购收入分配，不等于会计净利。商家仍需计入商品成本、Stripe 金流费与履约成本。">This shows the distribution of group-buy revenue, not accounting profit. The merchant still accounts for product cost, Stripe processing fees, and fulfillment.</p>
+          </section>
+          <section class="panel" aria-label="Cost comparison" data-aria-en="Cost comparison" data-aria-zh="成本比较">
+            <div class="cost-compare">
+              <div class="cost-card"><div><strong data-en="Cost before opening" data-zh="开团前成本">Cost before opening</strong><div class="fineprint" data-en="No ad buy or prepaid sponsorship required" data-zh="不用先买广告或预付业配费">No ad buy or prepaid sponsorship required</div></div><div class="value num">$0</div></div>
+              <div class="cost-card"><div><strong data-en="Cost if the group fails" data-zh="流团成本">Cost if the group fails</strong><div class="fineprint" data-en="Miss the threshold and every authorization is released" data-zh="未达门槛，自动释放预授权">Miss the threshold and every authorization is released</div></div><div class="value num">$0</div></div>
+            </div>
+            <p class="fineprint" data-en="This simulation uses commission-only creator compensation. If a merchant separately agrees to a guaranteed creator fee, that fee remains payable under their contract." data-zh="本模拟采纯佣金方案。若商家另约创作者保底费，流团时仍依合作合约支付。">This simulation uses commission-only creator compensation. If a merchant separately agrees to a guaranteed creator fee, that fee remains payable under their contract.</p>
+          </section>
+        </div>
+
+        <h3 class="section-title" data-en="How to read this group" data-zh="这一团值得怎么看">How to read this group</h3>
+        <section class="panel">
+          <ul class="insight-list">
+            <li><span data-en="Creator + platform cost / order" data-zh="创作者＋平台合作成本／单">Creator + platform cost / order</span><strong class="num">$11.25</strong></li>
+            <li><span data-en="Sales above the threshold" data-zh="达标后额外销售">Sales above the threshold</span><strong class="num" data-en="+36 units" data-zh="+36 份">+36 units</strong></li>
+            <li><span data-en="Gross sales retained by merchant" data-zh="商家保留成交额">Gross sales retained by merchant</span><strong class="num">85%</strong></li>
+            <li><span data-en="New customers ready for fulfillment" data-zh="新增可履约客户">New customers ready for fulfillment</span><strong class="num">136</strong></li>
+          </ul>
+        </section>
+        <div class="next-row"><div><strong data-en="Next: fulfill the orders" data-zh="下一步：交付订单">Next: fulfill the orders</strong><p data-en="The merchant receives customer and formula details. The creator never sees participant PII." data-zh="商家取得完整客户与商品选项，推广大使看不到参加者个资。">The merchant receives customer and formula details. The creator never sees participant PII.</p></div><button class="primary" data-screen="customers" data-en="View customer list" data-zh="查看客户名单">View customer list</button></div>
+      </div>
+    </section>
+
+    <section id="screen-customers" class="screen" aria-labelledby="customers-title">
+      <div class="customers">
+        <div class="customers-head">
+          <div><h2 id="customers-title" data-en="Customers &amp; fulfillment data" data-zh="成团客户与履约资料">Customers &amp; fulfillment data</h2><p data-en="Only the merchant can access this list for shipping and post-purchase support." data-zh="这份清单只提供给商家，用于出货与售后。">Only the merchant can access this list for shipping and post-purchase support.</p></div>
+          <div class="customer-summary"><div class="summary-chip"><strong class="num">136</strong><span data-en="orders" data-zh="笔订单">orders</span></div><div class="summary-chip"><strong class="num">$10,200</strong><span data-en="captured" data-zh="已请款">captured</span></div></div>
+        </div>
+        <div class="table-tools">
+          <div class="search"><input id="customer-search" type="search" aria-label="Search customers" data-aria-en="Search customers" data-aria-zh="搜寻客户" placeholder="Search name, email, or order number" data-placeholder-en="Search name, email, or order number" data-placeholder-zh="搜寻姓名、Email、订单编号"></div>
+          <select id="variant-filter" aria-label="Filter by formula" data-aria-en="Filter by formula" data-aria-zh="筛选配方"><option value="all" data-en="All formulas" data-zh="所有配方">All formulas</option><option value="rose" data-en="Rose Glow" data-zh="玫瑰焕采">Rose Glow</option><option value="calm" data-en="Calm &amp; Dew" data-zh="舒缓水润">Calm &amp; Dew</option><option value="barrier" data-en="Barrier Reset" data-zh="屏障修护">Barrier Reset</option></select>
+        </div>
+        <div class="table-shell">
+          <table>
+            <thead><tr><th data-en="Customer" data-zh="客户">Customer</th><th data-en="Order" data-zh="订单">Order</th><th data-en="Formula" data-zh="商品选项">Formula</th><th data-en="Ship to" data-zh="配送城市">Ship to</th><th data-en="Payment" data-zh="付款">Payment</th></tr></thead>
+            <tbody id="customer-body"></tbody>
+          </table>
+          <div class="empty" id="empty-state">No simulated orders match your filters.</div>
+          <div class="table-foot"><span id="table-count">Showing 136 simulated orders</span><span data-en="Creator access blocked" data-zh="推广大使无权存取">Creator access blocked</span></div>
+        </div>
+        <div class="journey-note" data-en="Data flow: threshold met at deadline → Stripe captures payment → the merchant receives order and shipping details → the merchant handles fulfillment and returns. Every name, email, order number, and address on this page is simulated." data-zh="资料流示意：截止达标 → Stripe 请款 → 商家收到订单与配送资料 → 商家自行出货、处理退换货。此页所有姓名、Email、订单与地址均为模拟资料。">Data flow: threshold met at deadline → Stripe captures payment → the merchant receives order and shipping details → the merchant handles fulfillment and returns. Every name, email, order number, and address on this page is simulated.</div>
+      </div>
+    </section>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (function () {
+      var lang = "en";
+      var initialCount = 64;
+      var count = initialCount;
+      var running = true;
+      var completed = false;
+      var tickTimer = null;
+      var autoReplayTimer = null;
+      var autoReplayPending = false;
+      var toastTimer = null;
+      var countdownStart = 86400;
+      var deadlineSeconds = countdownStart;
+      var threshold = 100;
+      var finalCount = 136;
+      var inventoryCap = 160;
+      var names = ["Jia W.", "Noah K.", "Maya C.", "Leo R.", "Sofia T.", "Ava M.", "Ethan L.", "Mia H."];
+      var variantNames = {
+        rose: { en: "Rose Glow", zh: "玫瑰焕采" },
+        calm: { en: "Calm & Dew", zh: "舒缓水润" },
+        barrier: { en: "Barrier Reset", zh: "屏障修护" }
+      };
+      var variantVisuals = {
+        rose: {
+          bottle: "ROSE GLOW",
+          benefit: { en: "Rose hydration", zh: "玫瑰补水" },
+          detail: { en: "Alcohol-free · pH-balanced", zh: "无酒精 · 弱酸平衡" },
+          aria: { en: "Illustration of Aurelia Botanics Rose Glow formula", zh: "Aurelia Botanics 玫瑰焕采配方示意图" }
+        },
+        calm: {
+          bottle: "CALM & DEW",
+          benefit: { en: "Centella comfort", zh: "积雪草舒缓" },
+          detail: { en: "Fragrance-free · Cooling hydration", zh: "无香料 · 清透补水" },
+          aria: { en: "Illustration of Aurelia Botanics Calm and Dew formula", zh: "Aurelia Botanics 舒缓水润配方示意图" }
+        },
+        barrier: {
+          bottle: "BARRIER RESET",
+          benefit: { en: "Ceramide support", zh: "神经酰胺修护" },
+          detail: { en: "Rich essence · Dry-skin comfort", zh: "润泽精华 · 干肌适用" },
+          aria: { en: "Illustration of Aurelia Botanics Barrier Reset formula", zh: "Aurelia Botanics 屏障修护配方示意图" }
+        }
+      };
+      var selectedVariant = "rose";
+      var variantIds = ["rose", "calm", "barrier"];
+      var fill = document.getElementById("progress-fill");
+      var sold = document.getElementById("sold-count");
+      var copy = document.getElementById("progress-copy");
+      var live = document.getElementById("live-copy");
+      var statusText = document.getElementById("status-text");
+      var pulse = document.getElementById("pulse");
+      var toggle = document.getElementById("toggle-play");
+      var completionActions = document.getElementById("completion-actions");
+      var replayStatus = document.getElementById("replay-status");
+      var timeLeft = document.getElementById("time-left");
+      var toast = document.getElementById("toast");
+      var productVisual = document.getElementById("product-visual");
+      var bottleFormula = document.getElementById("bottle-formula");
+      var formulaBenefit = document.getElementById("formula-benefit");
+      var formulaDetail = document.getElementById("formula-detail");
+
+      function tx(en, zh) { return lang === "en" ? en : zh; }
+      function pad(n) { return String(n).padStart(2, "0"); }
+      function formatTime(s) { var h = Math.floor(s / 3600); var m = Math.floor((s % 3600) / 60); return pad(h) + ":" + pad(m) + ":" + pad(s % 60); }
+      function syncCountdown() {
+        var progress = Math.max(0, Math.min(1, (count - initialCount) / (finalCount - initialCount)));
+        deadlineSeconds = Math.round(countdownStart * (1 - progress));
+        timeLeft.textContent = formatTime(deadlineSeconds);
+      }
+      function setVariantVisual(id) {
+        selectedVariant = id;
+        var visual = variantVisuals[id];
+        productVisual.setAttribute("data-formula", id);
+        productVisual.setAttribute("aria-label", visual.aria[lang]);
+        bottleFormula.textContent = visual.bottle;
+        formulaBenefit.textContent = visual.benefit[lang];
+        formulaDetail.textContent = visual.detail[lang];
+      }
+      function liveMessage(name, variantId) {
+        return "<strong>" + name + "</strong> " + tx("just chose ", "刚选了") + variantNames[variantId][lang];
+      }
+      function updateProgress() {
+        var pct = Math.min(100, (count / inventoryCap) * 100);
+        sold.textContent = count;
+        fill.style.width = pct + "%";
+        document.getElementById("authorized-label").textContent = tx("pre-authorized", "份已预授权");
+        document.getElementById("threshold-copy").textContent = tx("Threshold 100 · Cap 160", "门槛 100 · 上限 160");
+        if (completed) {
+          copy.textContent = tx("136 orders captured", "136 份完成请款");
+          statusText.textContent = tx("Group complete", "截止成团");
+          fill.classList.add("done");
+          pulse.classList.add("done");
+        } else if (count < threshold) {
+          copy.textContent = tx((threshold - count) + " more to guarantee the group", "还差 " + (threshold - count) + " 人保证成团");
+          statusText.textContent = tx("Building the group", "正在集结");
+        } else {
+          copy.textContent = tx("Goal met · Open until deadline", "已达标 · 截止前继续开放");
+          statusText.textContent = tx("Guaranteed", "保证成团");
+          fill.classList.add("done");
+          pulse.classList.add("done");
+        }
+      }
+      function showToast(text) {
+        clearTimeout(toastTimer);
+        toast.textContent = text;
+        toast.classList.add("show");
+        toastTimer = setTimeout(function () { toast.classList.remove("show"); }, 1800);
+      }
+      function finish() {
+        if (completed) return;
+        completed = true;
+        running = false;
+        deadlineSeconds = 0;
+        timeLeft.textContent = formatTime(deadlineSeconds);
+        autoReplayPending = true;
+        toggle.textContent = tx("Replay", "重新播放");
+        completionActions.hidden = false;
+        replayStatus.textContent = tx("Auto replay in 10 seconds unless you click anywhere.", "若未点击任何位置，10 秒后自动重播。");
+        updateProgress();
+        live.innerHTML = "<strong>" + tx("136 payments captured", "136 份完成请款") + "</strong> · " + tx("Results are ready to view", "成果已可查看");
+        clearTimeout(autoReplayTimer);
+        autoReplayTimer = setTimeout(function () {
+          if (autoReplayPending) reset();
+        }, 10000);
+      }
+      function tick() {
+        if (!running || completed) return;
+        if (count < finalCount) {
+          count = Math.min(finalCount, count + (count < threshold ? 4 : 6));
+          syncCountdown();
+          var i = count % names.length;
+          var variantId = variantIds[count % variantIds.length];
+          live.innerHTML = liveMessage(names[i], variantId);
+          updateProgress();
+          if (count >= finalCount) finish();
+          else tickTimer = setTimeout(tick, count < threshold ? 520 : 320);
+        } else {
+          finish();
+        }
+      }
+      function reset() {
+        clearTimeout(tickTimer);
+        clearTimeout(autoReplayTimer);
+        autoReplayPending = false;
+        count = initialCount;
+        deadlineSeconds = countdownStart;
+        completed = false;
+        running = true;
+        fill.classList.remove("done");
+        pulse.classList.remove("done");
+        completionActions.hidden = true;
+        replayStatus.textContent = "";
+        live.innerHTML = liveMessage("Jia W.", "rose");
+        timeLeft.textContent = formatTime(deadlineSeconds);
+        toggle.textContent = tx("Pause auto progress", "暂停自动进度");
+        updateProgress();
+        tickTimer = setTimeout(tick, 700);
+      }
+      function showScreen(name) {
+        document.querySelectorAll(".screen").forEach(function (el) { el.classList.remove("active"); });
+        var target = document.getElementById("screen-" + name);
+        if (target) target.classList.add("active");
+        document.querySelectorAll(".stage-btn").forEach(function (btn) {
+          if (btn.getAttribute("data-screen") === name) btn.setAttribute("aria-current", "step");
+          else btn.removeAttribute("aria-current");
+        });
+        if (name !== "join") { running = false; clearTimeout(tickTimer); }
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+      function setLanguage(next) {
+        lang = next;
+        document.documentElement.lang = lang === "en" ? "en" : "zh-Hans";
+        document.querySelectorAll("[data-en]").forEach(function (el) {
+          el.textContent = el.getAttribute(lang === "en" ? "data-en" : "data-zh");
+        });
+        document.querySelectorAll("[data-aria-en]").forEach(function (el) {
+          el.setAttribute("aria-label", el.getAttribute(lang === "en" ? "data-aria-en" : "data-aria-zh"));
+        });
+        document.querySelectorAll("[data-placeholder-en]").forEach(function (el) {
+          el.setAttribute("placeholder", el.getAttribute(lang === "en" ? "data-placeholder-en" : "data-placeholder-zh"));
+        });
+        document.getElementById("lang-en").classList.toggle("active", lang === "en");
+        document.getElementById("lang-zh").classList.toggle("active", lang === "zh");
+        document.getElementById("lang-en").setAttribute("aria-pressed", lang === "en" ? "true" : "false");
+        document.getElementById("lang-zh").setAttribute("aria-pressed", lang === "zh" ? "true" : "false");
+        if (completed) {
+          toggle.textContent = tx("Replay", "重新播放");
+          live.innerHTML = "<strong>" + tx("136 payments captured", "136 份完成请款") + "</strong> · " + tx("Results are ready to view", "成果已可查看");
+          replayStatus.textContent = autoReplayPending
+            ? tx("Auto replay in 10 seconds unless you click anywhere.", "若未点击任何位置，10 秒后自动重播。")
+            : tx("Auto replay cancelled. Use Replay to run it again.", "已取消自动重播，可按「重新播放」再次播放。");
+        } else {
+          toggle.textContent = running ? tx("Pause auto progress", "暂停自动进度") : tx("Resume auto progress", "继续自动进度");
+          live.innerHTML = liveMessage(names[count % names.length], variantIds[count % variantIds.length]);
+        }
+        document.getElementById("empty-state").textContent = tx("No simulated orders match your filters.", "没有符合条件的模拟订单。");
+        setVariantVisual(selectedVariant);
+        updateProgress();
+        renderCustomers();
+      }
+
+      function cancelAutoReplay() {
+        if (!autoReplayPending) return;
+        autoReplayPending = false;
+        clearTimeout(autoReplayTimer);
+        replayStatus.textContent = tx("Auto replay cancelled. Use Replay to run it again.", "已取消自动重播，可按「重新播放」再次播放。");
+      }
+      document.addEventListener("click", cancelAutoReplay, true);
+      document.querySelectorAll("[data-screen]").forEach(function (btn) {
+        btn.addEventListener("click", function () { showScreen(btn.getAttribute("data-screen")); });
+      });
+      document.getElementById("view-results").addEventListener("click", function () { showScreen("results"); });
+      document.querySelectorAll(".variant").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          document.querySelectorAll(".variant").forEach(function (b) {
+            b.classList.remove("active");
+            b.setAttribute("aria-pressed", "false");
+          });
+          btn.classList.add("active");
+          btn.setAttribute("aria-pressed", "true");
+          var id = btn.getAttribute("data-variant");
+          setVariantVisual(id);
+          showToast(tx("Selected “" + variantNames[id].en + "”", "已选择「" + variantNames[id].zh + "」"));
+        });
+      });
+      document.getElementById("join-demo").addEventListener("click", function () {
+        if (count < finalCount) {
+          count += 1;
+          syncCountdown();
+          updateProgress();
+          if (count >= finalCount) finish();
+          showToast(tx("Simulated join complete · No real transaction", "模拟参团完成 · 未产生真实交易"));
+        }
+      });
+      toggle.addEventListener("click", function () {
+        if (completed) { reset(); return; }
+        running = !running;
+        toggle.textContent = running ? tx("Pause auto progress", "暂停自动进度") : tx("Resume auto progress", "继续自动进度");
+        if (running) tick(); else clearTimeout(tickTimer);
+      });
+      document.getElementById("lang-en").addEventListener("click", function () { setLanguage("en"); });
+      document.getElementById("lang-zh").addEventListener("click", function () { setLanguage("zh"); });
+
+      var firstNames = ["Emily", "Daniel", "Sophia", "Lucas", "Olivia", "Ethan", "Mia", "Noah", "Ava", "Liam", "Chloe", "Ryan", "Grace", "Owen", "Ella", "Kai", "Zoe"];
+      var lastInitials = ["L.", "K.", "C.", "R.", "T.", "M.", "H.", "W."];
+      var cities = ["Seattle, WA", "Bellevue, WA", "Portland, OR", "Austin, TX", "San Jose, CA", "Denver, CO", "Chicago, IL", "Boston, MA"];
+      var customerBody = document.getElementById("customer-body");
+      var customers = [];
+      for (var n = 0; n < finalCount; n++) {
+        var fn = firstNames[n % firstNames.length];
+        var li = lastInitials[Math.floor(n / firstNames.length) % lastInitials.length];
+        customers.push({
+          name: fn + " " + li,
+          email: fn.toLowerCase() + ".demo" + (n + 1) + "@example.com",
+          order: "RLY-2609-" + String(1001 + n),
+          variant: variantIds[n % 3],
+          city: cities[n % cities.length]
+        });
+      }
+      function renderCustomers() {
+        var q = document.getElementById("customer-search").value.toLowerCase().trim();
+        var variant = document.getElementById("variant-filter").value;
+        var filtered = customers.filter(function (c) {
+          var matchQ = !q || (c.name + " " + c.email + " " + c.order).toLowerCase().indexOf(q) !== -1;
+          var matchV = variant === "all" || c.variant === variant;
+          return matchQ && matchV;
+        });
+        var labels = lang === "en" ? ["Customer", "Order", "Formula", "Ship to", "Payment"] : ["客户", "订单", "商品选项", "配送城市", "付款"];
+        customerBody.innerHTML = filtered.map(function (c) {
+          return "<tr><td data-label=\"" + labels[0] + "\"><strong>" + c.name + "</strong><small>" + c.email + "</small></td><td data-label=\"" + labels[1] + "\"><span class=\"num\">" + c.order + "</span></td><td data-label=\"" + labels[2] + "\">" + variantNames[c.variant][lang] + " × 1</td><td data-label=\"" + labels[3] + "\">" + c.city + "</td><td data-label=\"" + labels[4] + "\"><span class=\"status-pill\">" + tx("Captured", "已请款") + "</span></td></tr>";
+        }).join("");
+        document.getElementById("empty-state").style.display = filtered.length ? "none" : "block";
+        document.getElementById("table-count").textContent = tx("Showing " + filtered.length + " simulated orders", "显示 " + filtered.length + " 笔模拟订单");
+      }
+      document.getElementById("customer-search").addEventListener("input", renderCustomers);
+      document.getElementById("variant-filter").addEventListener("change", renderCustomers);
+      setLanguage("en");
+      tickTimer = setTimeout(tick, 900);
+    })();
+  </script>
+</body>
+</html>
