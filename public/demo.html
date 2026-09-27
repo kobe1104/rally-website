@@ -315,6 +315,14 @@
     .live-copy strong { color: var(--ink); }
     .progress-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
     .progress-controls .secondary { border: 1px solid var(--line); }
+    .sim-status { display: inline-flex; align-items: center; gap: 9px; padding: 7px 14px 7px 12px; border-radius: 999px; background: rgba(242,79,74,.09); color: var(--ink); font-size: 14px; font-weight: 700; cursor: default; user-select: none; }
+    .sim-dot { position: relative; width: 8px; height: 8px; border-radius: 50%; background: var(--coral); flex: none; }
+    .sim-status[data-state="running"] .sim-dot::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--coral); animation: sim-ping 1.4s cubic-bezier(0,0,.2,1) infinite; }
+    .sim-status[data-state="paused"] { background: var(--surface-2); color: var(--muted); }
+    .sim-status[data-state="paused"] .sim-dot { background: var(--muted); }
+    .sim-status[data-state="done"] { background: var(--mint-soft); }
+    .sim-status[data-state="done"] .sim-dot { background: var(--mint); }
+    @keyframes sim-ping { 0% { transform: scale(1); opacity: .6; } 80%, 100% { transform: scale(2.8); opacity: 0; } }
     .completion-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
     .completion-actions[hidden] { display: none; }
     .completion-note { color: var(--muted); font-size: 12px; }
@@ -545,7 +553,7 @@
           <div class="progress-meta"><span id="progress-copy">36 more to guarantee the group</span><span id="threshold-copy">Threshold 100 · Cap 160</span></div>
           <div class="live-copy" id="live-copy" aria-live="polite"><strong>Jia W.</strong> just chose Rose Glow</div>
           <div class="progress-controls" role="group" aria-label="Simulation controls" data-aria-en="Simulation controls" data-aria-zh="模拟操作">
-            <button class="primary" id="join-demo" data-en="Simulate joining" data-zh="模拟加入团购">Simulate joining</button>
+            <span class="sim-status" id="sim-status" role="status" data-state="running"><span class="sim-dot" aria-hidden="true"></span><span id="sim-status-text">Simulating joining</span></span>
             <button class="secondary" id="toggle-play" data-en="Pause auto progress" data-zh="暂停自动进度">Pause auto progress</button>
           </div>
           <div class="completion-actions" id="completion-actions" hidden>
@@ -655,6 +663,7 @@
       var initialCount = 64;
       var count = initialCount;
       var running = true;
+      var started = false;
       var completed = false;
       var tickTimer = null;
       var autoReplayTimer = null;
@@ -700,6 +709,8 @@
       var statusText = document.getElementById("status-text");
       var pulse = document.getElementById("pulse");
       var toggle = document.getElementById("toggle-play");
+      var simStatus = document.getElementById("sim-status");
+      var simStatusText = document.getElementById("sim-status-text");
       var completionActions = document.getElementById("completion-actions");
       var replayStatus = document.getElementById("replay-status");
       var timeLeft = document.getElementById("time-left");
@@ -749,6 +760,14 @@
           fill.classList.add("done");
           pulse.classList.add("done");
         }
+        updateSimStatus();
+      }
+      function updateSimStatus() {
+        var state = completed ? "done" : (running ? "running" : "paused");
+        simStatus.setAttribute("data-state", state);
+        if (state === "done") simStatusText.textContent = tx("Simulation complete", "模拟已完成");
+        else if (state === "running") simStatusText.textContent = tx("Simulating joining", "正在模拟加入团购");
+        else simStatusText.textContent = tx("Simulation paused", "模拟已暂停");
       }
       function showToast(text) {
         clearTimeout(toastTimer);
@@ -814,7 +833,7 @@
           if (btn.getAttribute("data-screen") === name) btn.setAttribute("aria-current", "step");
           else btn.removeAttribute("aria-current");
         });
-        if (name !== "join") { running = false; clearTimeout(tickTimer); }
+        if (name !== "join") { running = false; clearTimeout(tickTimer); updateSimStatus(); }
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
       function setLanguage(next) {
@@ -873,20 +892,12 @@
           showToast(tx("Selected “" + variantNames[id].en + "”", "已选择「" + variantNames[id].zh + "」"));
         });
       });
-      document.getElementById("join-demo").addEventListener("click", function () {
-        if (count < finalCount) {
-          count += 1;
-          syncCountdown();
-          updateProgress();
-          if (count >= finalCount) finish();
-          showToast(tx("Simulated join complete · No real transaction", "模拟参团完成 · 未产生真实交易"));
-        }
-      });
       toggle.addEventListener("click", function () {
         if (completed) { reset(); return; }
         running = !running;
         toggle.textContent = running ? tx("Pause auto progress", "暂停自动进度") : tx("Resume auto progress", "继续自动进度");
-        if (running) tick(); else clearTimeout(tickTimer);
+        updateSimStatus();
+        if (running) { started = true; tick(); } else clearTimeout(tickTimer);
       });
       document.getElementById("lang-en").addEventListener("click", function () { setLanguage("en"); });
       document.getElementById("lang-zh").addEventListener("click", function () { setLanguage("zh"); });
@@ -925,7 +936,22 @@
       document.getElementById("customer-search").addEventListener("input", renderCustomers);
       document.getElementById("variant-filter").addEventListener("change", renderCustomers);
       setLanguage("en");
-      tickTimer = setTimeout(tick, 900);
+      function startSimulation() {
+        if (started) return;
+        started = true;
+        tickTimer = setTimeout(tick, 900);
+      }
+      if ("IntersectionObserver" in window) {
+        var panelObserver = new IntersectionObserver(function (entries) {
+          if (entries[0].isIntersecting) {
+            startSimulation();
+            panelObserver.disconnect();
+          }
+        }, { threshold: 0.4 });
+        panelObserver.observe(document.querySelector(".group-panel"));
+      } else {
+        startSimulation();
+      }
     })();
   </script>
 </body>
