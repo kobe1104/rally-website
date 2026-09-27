@@ -164,10 +164,13 @@
     .merchant-avatar { width: 30px; height: 30px; border-radius: 9px; background: #f2d4d3; color: #552a2a; display: grid; place-items: center; font-weight: 900; }
     .hero h1 { margin: 0 0 16px; font-size: clamp(35px, 4.7vw, 62px); line-height: 1.08; letter-spacing: -.04em; max-width: 760px; }
     .hero-copy { color: #c8d2e1; font-size: clamp(16px, 2vw, 19px); line-height: 1.75; max-width: 650px; margin: 0 0 30px; }
-    .price-row { display: flex; align-items: baseline; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
-    .sale-price { font-size: 44px; font-weight: 800; letter-spacing: -.03em; }
-    .regular-price { color: #91a0b8; text-decoration: line-through; font-size: 18px; }
-    .save-tag { color: #ffd9d6; background: rgba(242,79,74,.18); padding: 5px 9px; border-radius: 7px; font-size: 13px; font-weight: 700; }
+    .price-row { display: flex; align-items: stretch; flex-wrap: wrap; gap: 24px; margin-bottom: 24px; }
+    .price-item { display: flex; flex-direction: column; justify-content: space-between; gap: 4px; }
+    .price-item + .price-item { padding-left: 24px; border-left: 1px solid rgba(255,255,255,.14); }
+    .price-label { font-size: 13px; font-weight: 700; color: #ffd9d6; }
+    .price-item.regular .price-label { color: #91a0b8; font-weight: 600; }
+    .sale-price { font-size: 44px; font-weight: 800; letter-spacing: -.03em; line-height: 1.05; }
+    .regular-price { color: #91a0b8; text-decoration: line-through; font-size: 24px; font-weight: 600; line-height: 1.3; padding-bottom: 3px; }
     .variant-label { color: #b8c5da; font-size: 13px; margin-bottom: 10px; }
     .variants { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 28px; }
     .variant {
@@ -519,9 +522,14 @@
             <h1 id="join-title" data-en="Rose Rejuvenating Essence Toner" data-zh="玫瑰焕颜精华水">Rose Rejuvenating Essence Toner</h1>
             <p class="hero-copy" data-en="A cushiony essence toner that hydrates, softens, and preps skin in one step. The rally is guaranteed at 100 orders—and stays open until the 24-hour deadline." data-zh="一瓶完成补水、柔肤与后续保养打底。这场拼团 100 人达标才会扣款；达标后仍可持续加入，直到 24 小时截止。">A cushiony essence toner that hydrates, softens, and preps skin in one step. The rally is guaranteed at 100 orders—and stays open until the 24-hour deadline.</p>
             <div class="price-row">
-              <span class="sale-price num">$75</span>
-              <span class="regular-price num">$84</span>
-              <span class="save-tag" data-en="Save $9 each" data-zh="每瓶省 $9">Save $9 each</span>
+              <div class="price-item">
+                <span class="price-label" data-en="Rally price" data-zh="拼团价">Rally price</span>
+                <span class="sale-price num">$75</span>
+              </div>
+              <div class="price-item regular">
+                <span class="price-label" data-en="Regular price" data-zh="正常价">Regular price</span>
+                <span class="regular-price num">$84</span>
+              </div>
             </div>
             <div class="variant-label" data-en="Choose your formula" data-zh="选择配方">Choose your formula</div>
             <div class="variants" role="group" aria-label="Product formula" data-aria-en="Product formula" data-aria-zh="商品配方">
