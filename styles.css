@@ -379,6 +379,11 @@ p:last-child {
   font-size: 1.0625rem;
 }
 
+.section-intro .eyebrow {
+  color: var(--coral);
+  font-size: 0.8125rem;
+}
+
 .section-dark {
   background: var(--navy);
   color: var(--white);
