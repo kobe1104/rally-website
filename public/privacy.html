@@ -77,7 +77,7 @@
         <article class="legal-content">
           <p>
             Echo AI LLC (“Echo AI,” “we,” “us,” or “our”) provides Rally, a group-buying service for
-            merchants, organizers, and shoppers. This Privacy Policy explains how we collect, use,
+            merchants, creator partners, and shoppers. This Privacy Policy explains how we collect, use,
             disclose, and protect information when you use the Rally website, Rally services, and
             the Rally connector for Muse (collectively, the “Services”).
           </p>
@@ -90,8 +90,8 @@
               Stripe; we never see or store your full card number.
             </li>
             <li>
-              <strong>The organizer who shared the rally never receives your name, email address,
-              or shipping address</strong>, and neither do other shoppers. Organizers see only rally
+              <strong>The creator who shared the rally never receives your name, email address,
+              or shipping address</strong>, and neither do other shoppers. Creators see only rally
               progress, such as the number of units joined.
             </li>
             <li>
@@ -123,7 +123,7 @@
             <li>
               <strong>Rally information:</strong> Such as rallies created or joined, deal
               selections, quantity, rally status, authorization and charge status, the version of
-              our Terms you agreed to and when, communications, and organizer activity.
+              our Terms you agreed to and when, communications, and creator partner activity.
             </li>
             <li>
               <strong>Order-related information:</strong> Such as your name, email address,
@@ -137,12 +137,14 @@
 
           <h3>Payment information</h3>
           <p>
-            Card payments are processed by Stripe, Inc. on the merchant’s Stripe account. You enter
+            Payments are processed by Stripe through Rally’s Stripe Connect integration. You enter
             your card details in a form provided by Stripe, and Stripe processes them under its own
-            <a href="https://stripe.com/privacy">privacy policy</a>. Rally never receives or
-            stores full payment-card numbers and does not take possession of purchase funds. Rally
-            receives limited transaction information from Stripe, such as authorization and charge
-            status, amount, and a transaction reference, so it can track rally progress and provide the Services.
+            <a href="https://stripe.com/privacy">privacy policy</a>. Rally does not receive or
+            store your full payment-card number. Rally receives transaction information needed to
+            operate the Services, which may include authorization and charge status, transaction
+            amount, tax calculations and tax transaction identifiers, refund and dispute
+            information, transfer and settlement information, and Stripe transaction references.
+            To calculate sales tax, we use the shipping address you enter.
           </p>
 
           <h3>Information collected automatically</h3>
@@ -169,9 +171,15 @@
             <li>Create and manage accounts, deals, rallies, and merchant dashboards.</li>
             <li>Count authorized units and determine whether published rally goals are met.</li>
             <li>
-              Have the merchant charge your card if the rally fills and cancel your card hold if it
+              Charge your card through Stripe if the rally fills and cancel your card hold if it
               does not.
             </li>
+            <li>
+              Calculate applicable marketplace sales and use taxes, maintain tax records, report
+              and remit taxes, and provide merchants with marketplace sales reports required by
+              law.
+            </li>
+            <li>Administer refunds and payment disputes.</li>
             <li>Send service messages, deadline reminders, support replies, and security notices.</li>
             <li>
               If you opted in, send you emails about new rallies and deals on Rally, and use the
@@ -214,8 +222,8 @@
               or sell it.
             </li>
             <li>
-              <strong>To organizers:</strong> Organizers (such as creators who share a rally)
-              receive rally progress, unit counts, and sales totals used to calculate their commission.
+              <strong>To creator partners:</strong> Creators who share a merchant’s rally may see
+              rally progress, unit counts, and sales totals used to calculate their commission.
               They never receive shoppers’ names, email addresses, or shipping addresses.
             </li>
             <li>
@@ -230,6 +238,10 @@
               under contractual restrictions, including Stripe (payment processing), Google Cloud
               (hosting and databases, in the United States), and Resend (transactional email), as
               well as other hosting, security, and support providers.
+            </li>
+            <li>
+              <strong>To taxing, regulatory, and governmental authorities</strong> where required by
+              law, for example in sales and use tax returns, records, and audits.
             </li>
             <li>
               <strong>For legal and safety reasons:</strong> We may disclose information if required
@@ -256,9 +268,10 @@
             confidential business information.
           </p>
           <p>
-            Merchants receive personal information as independent sellers and may use it under their
-            own privacy notices. Contact the relevant merchant about its handling of order,
-            fulfillment, return, or customer-service information.
+            Merchants receive personal information as independent sellers. A merchant’s use of it
+            is governed by its own privacy notice and also remains subject to the use restrictions
+            in the Rally Merchant Agreement described in Section 3. Contact the relevant merchant
+            about its handling of order, fulfillment, return, or customer-service information.
           </p>
 
           <h2>5. Data retention</h2>
@@ -271,7 +284,9 @@
             <li>
               <strong>Shipping addresses</strong> are deleted automatically 120 days after a rally
               closes if you were charged (so the merchant can handle delivery issues, returns, and
-              disputes), and 30 days after it closes if you were not charged.
+              disputes), and 30 days after it closes if you were not charged. The city, state, and
+              ZIP code used to calculate sales tax on a charge are kept with the tax records,
+              without your street address.
             </li>
             <li>
               <strong>Names and email addresses</strong> are deleted automatically six years after a
@@ -312,13 +327,17 @@
 
           <h2>7. Consumer health data (Washington)</h2>
           <p>
-            Some products offered through Rally, such as personal-care or wellness products, could
-            reveal information about a person’s health. Where Washington’s My Health My Data Act
-            applies, we collect and share such information only as necessary to provide the
-            purchase you request (processing your order and sending it to the merchant for a filled
-            rally). We do not sell it or use it for advertising. You may exercise the rights
-            described below, including the right to access and delete this information and to
-            learn which third parties received it, by contacting us.
+            Rally is not designed to collect health diagnoses or to infer health status from
+            purchases. Prescription drugs, controlled substances, unsupported medical devices, and
+            other high-risk regulated products are prohibited on Rally. Ordinary beauty and
+            personal-care purchases are processed as ordinary commerce. Deals in product categories
+            that could reveal health information cannot be published until Rally has reviewed them.
+          </p>
+          <p>
+            If Rally later introduces a product or feature that causes it to collect consumer
+            health data regulated by Washington’s My Health My Data Act, Rally will put in place the
+            separate notice, policy, and rights process that law requires before enabling that
+            feature. You may exercise the rights described below by contacting us.
           </p>
 
           <h2>8. Your choices and rights</h2>

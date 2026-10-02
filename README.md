@@ -12,6 +12,7 @@ This repo contains only the public website and the demo. The Rally product itsel
 - `mcp-docs.html` — MCP documentation (`/mcp-docs`, linked from Support)
 - `privacy.html` — Privacy Policy (`/privacy`)
 - `terms.html` — Terms of Service (`/terms`)
+- `prohibited-products.html` — Prohibited Products Policy (`/prohibited-products`)
 
 ## Local preview
 
