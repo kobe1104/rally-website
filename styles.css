@@ -700,6 +700,58 @@ p:last-child {
   color: var(--coral);
 }
 
+.table-scroll {
+  overflow-x: auto;
+  margin: 0 0 1.5rem;
+}
+
+.legal-content table {
+  width: 100%;
+  min-width: 34rem;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.legal-content th,
+.legal-content td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.7rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.legal-content thead th {
+  color: var(--navy);
+  font-weight: 700;
+  border-bottom: 2px solid var(--navy);
+}
+
+.legal-content tbody th {
+  color: var(--navy);
+  font-weight: 600;
+  width: 26%;
+}
+
+.legal-content td {
+  color: var(--text-muted);
+}
+
+@media (max-width: 600px) {
+  .legal-content table {
+    min-width: 0;
+    font-size: 0.8125rem;
+  }
+
+  .legal-content th,
+  .legal-content td {
+    padding: 0.55rem 0.4rem;
+  }
+
+  .legal-content tbody th {
+    width: auto;
+  }
+}
+
 .support-grid {
   display: grid;
   gap: 2.5rem;
