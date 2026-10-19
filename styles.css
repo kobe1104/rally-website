@@ -4,6 +4,8 @@
   --navy-soft: #132847;
   --coral: #ed5851;
   --coral-hover: #d94a44;
+  --coral-button: #cf3f39;
+  --coral-button-hover: #b8352f;
   --white: #ffffff;
   --off-white: #f7f8fa;
   --text-soft: #c8d0dc;
@@ -230,12 +232,12 @@ p:last-child {
 }
 
 .btn-primary {
-  background: var(--coral);
+  background: var(--coral-button);
   color: var(--white);
 }
 
 .btn-primary:hover {
-  background: var(--coral-hover);
+  background: var(--coral-button-hover);
   color: var(--white);
 }
 
